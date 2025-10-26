@@ -77,7 +77,7 @@ pipeline {
         stage("SonarQube: Code Scan"){
             steps{                
                 withSonarQubeEnv("SQ"){                    
-                    sh "./gradlew sonar -Dsonar.host.url=http://3.37.89.125:9000"
+                    sh "./gradlew sonar -Dsonar.host.url=http://52.78.133.191:9000"
                 }
             }
         }     
@@ -161,38 +161,47 @@ pipeline {
                 }
             }
         }                                  
-        */
-
+        
         // git, versioning, commit, scm
         stage('Commit App Version') {
             steps {
                 script {
+
+                    // Retrieve the credentials. $PASS MUST be the GitHub Personal Access Token (PAT).
+                  
                   withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                                  
+                    // --- GITHUB PAT AUTH FIX ---
+                    // GitHub rejects the traditional 'username:password@...' format.
+                    // It requires the token to be used as the password with 'x-oauth-basic' as the placeholder username.
+                    
+                    def patUsername = "x-oauth-basic"
+                    
+                    // Construct the secure URL: https://x-oauth-basic:<PAT>@github.com/...
+                    
+                    def remoteUrl = "https://${patUsername}:${PASS}@github.com/awaisdevops/enterprise-devsecops-java-pipeline1.git"
+                    
+                    // ---------------------------
+
+                    // 1. Configure Git for the commit author                    
+                    sh 'git config --global user.email "jenkins@example.com"'
+                    sh 'git config --global user.name "jenkins"'
+
+                    // 2. Set the remote URL using the PAT-based authentication URL                    
+                    sh "git remote set-url origin ${remoteUrl}"
+                    
+                    // 3. Commit and Push  
                     sh '''
-                        # Configure Git for the commit author
-                        git config --global user.email "jenkins@example.com"
-                        git config --global user.name "jenkins"
-                        
-                        # Set the remote URL using the PAT-based authentication
-                        git remote set-url origin "https://x-oauth-basic:${PASS}@github.com/awaisdevops/enterprise-devsecops-java-pipeline1.git"
-                        
-                        # Fetch latest remote changes
-                        git fetch origin
-                        
-                        # Checkout main branch and reset to origin/main to ensure clean state
-                        git checkout -B main origin/main || git checkout -b main origin/main
-                        
-                        # Stage and commit the version bump
-                        git add build.gradle
-                        git commit -m "ci: Automated version bump [skip ci]" || echo "No changes to commit"
-                        
-                        # Push the commits to main
-                        git push origin main
+                        git add pom.xml
+                        git add src/
+                        git commit -m "ci: Automated version bump [skip ci]"
+                        git push origin HEAD:main
                     '''
                     }
                 }
             }
         }
+        
     }   
     
     post {
