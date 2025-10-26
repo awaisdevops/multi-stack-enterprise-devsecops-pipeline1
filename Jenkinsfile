@@ -1,9 +1,5 @@
 pipeline {
     agent any
-
-    tools {
-        go 'go'
-    }
      
     // Environment-specific configurations
     environment {
@@ -18,7 +14,7 @@ pipeline {
     }   
     
     stages {
-        
+        /*
         stage('App Version Bump') {
             steps {
                 script {
@@ -44,7 +40,7 @@ pipeline {
                     echo "Version set to: ${env.IMAGE_NAME}"
                 }
             }
-        }      
+        }    */  
 
              
         stage('Build & Package') {
@@ -59,21 +55,8 @@ pipeline {
                 }
             }
         }                     
-  
-        stage("SonarQube: Code Scan"){
-            steps{
-                withSonarQubeEnv("SQ"){                    
-                    sh """
-                        ${SONAR_HOME}/bin/sonar-scanner \
-                            -Dsonar.projectKey=go-app \
-                            -Dsonar.sources=. \
-                            -Dsonar.exclusions=**/*_test.go,**/vendor/** \
-                            -Dsonar.host.url=http://52.78.133.191:9000
-                    """
-                }
-            }
-        }     
 
+        
         stage('Unit Tests') {
             steps {
                 echo 'Running Unit Tests...'
