@@ -243,8 +243,6 @@ func TestSum(t *testing.T) {
 		})
 	}
 }
-<<<<<<< HEAD
-=======
 
 func TestMultiplySlow(t *testing.T) {
 	tests := []struct {
@@ -266,4 +264,3 @@ func TestMultiplySlow(t *testing.T) {
 		})
 	}
 }
->>>>>>> f34f5ea (test commit)
