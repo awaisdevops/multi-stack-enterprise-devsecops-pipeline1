@@ -32,7 +32,7 @@ pipeline {
                         fi
                         
                         # Parse and increment patch version
-                        IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+                        echo "$CURRENT_VERSION" | IFS='.' read -r MAJOR MINOR PATCH
                         PATCH=$((PATCH + 1))
                         NEW_VERSION="$MAJOR.$MINOR.$PATCH"
                         
