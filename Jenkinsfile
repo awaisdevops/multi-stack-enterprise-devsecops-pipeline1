@@ -5,8 +5,8 @@ pipeline {
         stage('Build & Tag Docker Image') {
             steps {
                 script {
-                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-                        sh "docker build -t adijaiswal/recommendationservice:latest ."
+                    withDockerRegistry(credentialsId: 'docker-hub-repo', toolName: 'docker') {
+                        sh "docker build -t awaisakram11199/devopsimages:recmndsvc ."
                     }
                 }
             }
@@ -15,8 +15,8 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-                        sh "docker push adijaiswal/recommendationservice:latest "
+                    withDockerRegistry(credentialsId: 'docker-hub-repo', toolName: 'docker') {
+                        sh "docker push awaisakram11199/devopsimages:recmndsvc "
                     }
                 }
             }
