@@ -24,19 +24,19 @@ pipeline {
                 script {
                     echo 'Incrementing app version...'
                     sh '''
-                        // Read current version from VERSION file
+                        # Read current version from VERSION file
                         if [ -f VERSION ]; then
                             CURRENT_VERSION=$(cat VERSION)
                         else
                             CURRENT_VERSION="0.0.0"
                         fi
                         
-                        // Parse and increment patch version
+                        # Parse and increment patch version
                         IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
                         PATCH=$((PATCH + 1))
                         NEW_VERSION="$MAJOR.$MINOR.$PATCH"
                         
-                        // Write new version
+                        # Write new version
                         echo "$NEW_VERSION" > VERSION
                     '''
                     def version = readFile('VERSION').trim()
