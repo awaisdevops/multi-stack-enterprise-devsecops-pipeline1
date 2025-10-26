@@ -68,7 +68,7 @@ pipeline {
                             -Dsonar.projectKey=go-app \
                             -Dsonar.sources=. \
                             -Dsonar.exclusions=**/*_test.go,**/vendor/** \
-                            -Dsonar.host.url=http://13.209.42.38:9000
+                            -Dsonar.host.url=http://52.78.133.191:9000
                     """
                 }
             }
