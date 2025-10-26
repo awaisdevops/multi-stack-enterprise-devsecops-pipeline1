@@ -132,7 +132,7 @@ pipeline {
 
                         sh "docker build -t ${DOCKER_REGISTRY}:${env.IMAGE_NAME} ."
                         sh 'echo $PASS | docker login -u $USER --password-stdin'
-                        sh "docker push ${DOCKER_REGISTRY}:${env.IMAGE_NAME}"
+                        sh "docker push ${DOCKER_REGISTRY}:checkoutimg{env.IMAGE_NAME}"
                         
                     }
                 }
