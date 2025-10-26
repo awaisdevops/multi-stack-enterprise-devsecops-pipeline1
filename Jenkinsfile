@@ -81,9 +81,7 @@ pipeline {
             }            
             post {
                 always {
-                    // Generate JUnit-style test report
-                    sh 'go test -v -json ./... > test-report.json || true'
-                    junit allowEmptyResults: true, testResults: 'test-report.json'
+                    echo 'Unit tests completed'
                 }
             }
         }
