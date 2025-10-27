@@ -73,7 +73,94 @@ pipeline {
             }
         }                     
   
-                                         
+        // analysis, quality, sonarqube, security
+        stage("SonarQube: Code Scan"){
+            steps{                
+                withSonarQubeEnv("SQ"){                    
+                    sh "./gradlew sonar -Dsonar.projectKey=checkout-service -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.token=${SONAR_AUTH_TOKEN}"
+                }
+            }
+        }     
+
+        // test, quality, junit, gradle
+        stage('Unit Tests') {
+            steps {
+                echo 'Running Unit Tests with Gradle...'
+                sh './gradlew test'
+            }            
+            post {
+                always {
+                    // Collect and publish JUnit test reports from Gradle's default location
+                    junit allowEmptyResults: true, testResults: '**/build/test-results/test/TEST-*.xml' 
+                }
+            }
+        }
+
+        // test, quality, integration, gradle
+        stage('Integration Tests') {
+            steps {
+                echo 'Running Integration Tests with Gradle...'
+                sh './gradlew integrationTest'
+            }
+            post {
+                always {
+                    // Collect and publish integration test reports
+                    junit allowEmptyResults: true, testResults: '**/build/test-results/integrationTest/TEST-*.xml' 
+                }
+            }
+        }
+        
+        /*
+        // security, dependency, owasp
+        stage("OWASP: Dependency Check"){
+            steps{
+                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'dc'
+                dependencyCheckPublisher pattern: '/app-dep-check-report.html'
+            }
+        }   */ 
+         
+        
+        // security, vulnerability, trivy, sast
+        stage("Trivy: Filesystem Scan"){
+            steps{
+                sh "trivy fs --format  table -o trivy-fs-report.json ."
+            }
+        }    
+       /*
+        // quality, sonarqube, gate
+        stage("SonarQube: Quality Gate"){
+            steps{
+                timeout(time: 10, unit: "MINUTES"){
+                    waitForQualityGate abortPipeline: false
+                }
+            }
+        }*/
+        
+        
+        // docker, build, container, image
+        stage('Docker: Build Image') {              
+            steps {
+                script {
+                    echo "building the docker image..."
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                        sh "docker build -t ${DOCKER_REGISTRY}:${env.IMAGE_NAME} ."
+                        sh 'echo $PASS | docker login -u $USER --password-stdin'
+                        sh "docker push ${DOCKER_REGISTRY}:${env.IMAGE_NAME}"
+                    }
+                }
+            }
+        }   
+        
+        // security, vulnerability, trivy, docker
+        stage('Trivy: Image Scan'){            
+            steps{
+                script {                    
+                    def FULL_IMAGE_TAG = "${DOCKER_REGISTRY}:${env.IMAGE_NAME}"
+                    sh "trivy image --format json -o trivy-image-report.json ${FULL_IMAGE_TAG}"                    
+                    archiveArtifacts artifacts: 'trivy-image-report.json', onlyIfSuccessful: true
+                }
+            }
+        }                                  
         
         // git, versioning, commit, scm
         stage('Commit App Version') {
@@ -108,7 +195,7 @@ pipeline {
                         git add build.gradle
                         git add src/
                         git commit -m "ci: Automated version bump [skip ci]"
-                        git push origin HEAD:main
+                        git push origin HEAD:adservive
                     '''
                     }
                 }
