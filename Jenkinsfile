@@ -162,6 +162,50 @@ pipeline {
             }
         }                                  
         
+        // git, versioning, deployment, k8s
+        stage('Update K8s Manifests in Main Branch') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                        sh '''
+                            # Clone the main branch repo containing K8s manifests
+                            git clone https://x-oauth-basic:${PASS}@github.com/awaisdevops/multi-stack-enterprise-devsecops-pipeline1.git infra-repo
+                            cd infra-repo
+                            git checkout main
+                            
+                            # Configure Git
+                            git config --global user.email "jenkins@example.com"
+                            git config --global user.name "jenkins"
+                            
+                            # Update the image tag for adservice component in K8s deployments
+                            # Pattern: awaisakram11199/devopsimages:adservice-BUILD_NUMBER
+                            echo "Updating adservice image to: ${DOCKER_REGISTRY}:adservice-${BUILD_NUMBER}"
+                            
+                            # Update all deployment manifests that reference adservice
+                            if [ -d "k8s/deployments" ]; then
+                                find k8s/deployments -name "*adservice*.yaml" -o -name "deployment.yaml" | while read file; do
+                                    if grep -q "adservice" "$file" 2>/dev/null; then
+                                        sed -i "s|${DOCKER_REGISTRY}:adservice-[^ ]*|${DOCKER_REGISTRY}:adservice-${BUILD_NUMBER}|g" "$file"
+                                        echo "Updated: $file"
+                                    fi
+                                done
+                            fi
+                            
+                            # Commit and push changes to main branch
+                            git add k8s/
+                            git commit -m "ci: Update adservice image to ${DOCKER_REGISTRY}:adservice-${BUILD_NUMBER} [skip ci]" || echo "No changes to commit"
+                            git push origin main
+                            
+                            # Cleanup
+                            cd ..
+                            rm -rf infra-repo
+                        '''
+                    }
+                }
+            }
+            
+        }
+        
         // git, versioning, commit, scm
         stage('Commit App Version') {
             steps {
