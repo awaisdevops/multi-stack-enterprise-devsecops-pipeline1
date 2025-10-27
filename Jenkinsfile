@@ -27,7 +27,52 @@ pipeline {
     
     stages {        
                 
-                                         
+        // versioning, gradle, git
+        stage('App Version Bump') {
+            steps {
+                script {
+                    sh 'chmod +x gradlew' // Ensure gradlew is executable
+                    echo 'Incrementing app version in build.gradle...'
+                    def buildFile = 'build.gradle'
+                    def content = readFile(buildFile)
+                    
+                    def currentVersionString = extractVersion(content)
+                    if (currentVersionString == null) {
+                        error "Could not find a version in build.gradle"
+                    }
+                    
+                    def versionParts = currentVersionString.replace("-SNAPSHOT", "").split('\\.')
+                    
+                    def major = versionParts[0] as int
+                    def minor = versionParts[1] as int
+                    def patch = versionParts[2] as int
+                    
+                    def newPatch = patch + 1
+                    def newVersion = "$major.$minor.$newPatch"
+                    def newVersionSnapshot = "$newVersion-SNAPSHOT"
+                    
+                    def newContent = content.replace("version = \"$currentVersionString\"", "version = \"$newVersionSnapshot\"")
+                    writeFile(file: buildFile, text: newContent)
+                    
+                    echo "Version bumped from $currentVersionString to $newVersionSnapshot"
+                    
+                    env.IMAGE_NAME = "addsvcimg-$newVersion-$BUILD_NUMBER"
+                }
+            }
+        }      
+             
+        // build, compile, package, gradle
+        stage('Build & Package') {
+            steps {
+                script {
+                    echo "building the application with Gradle..."
+                    sh 'rm -rf ~/.gradle/caches'  // Clear Gradle cache
+                    sh 'rm -rf build/'  // Clear local build directory
+                    sh './gradlew clean --no-daemon installDist'
+                }
+            }
+        }                    
+                                      
         
         // git, versioning, commit, scm
         stage('Commit App Version') {
