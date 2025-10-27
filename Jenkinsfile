@@ -77,7 +77,7 @@ pipeline {
         stage("SonarQube: Code Scan"){
             steps{                
                 withSonarQubeEnv("SQ"){                    
-                    sh "./gradlew sonar -Dsonar.projectKey=checkout-service -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_AUTH_TOKEN}"
+                    sh "./gradlew sonar -Dsonar.projectKey=checkout-service -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.token=${SONAR_AUTH_TOKEN}"
                 }
             }
         }     
