@@ -87,7 +87,7 @@ pipeline {
                 }
             }
         }   
-        
+        /*
         // security, vulnerability, trivy, docker
         stage('Trivy: Image Scan'){            
             steps{
@@ -98,11 +98,16 @@ pipeline {
                 }
             }
         }                                  
+        */
         
         // git, versioning, deployment, k8s
         stage('Update K8s Manifests in Main Branch') {
             steps {
                 script {
+                    // Capture the image name and registry before the shell block
+                    def IMAGE_TAG = "${env.IMAGE_NAME}"
+                    def REGISTRY = "${DOCKER_REGISTRY}"
+                    
                     withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         sh '''
                             # Clone the main branch repo containing K8s manifests
@@ -120,31 +125,32 @@ pipeline {
                             git config --global user.name "jenkins"
                             
                             # Update the image tag for adservice component in K8s deployments
-                            # Pattern: Match Docker Build Image stage pattern - ${DOCKER_REGISTRY}:${env.IMAGE_NAME}
-                            echo "Updating adservice image to: ${DOCKER_REGISTRY}:${env.IMAGE_NAME}"
+                            # Pattern: Match Docker Build Image stage pattern - REGISTRY:IMAGE_TAG
+                            echo "Updating adservice image to: ''' + REGISTRY + ''':''' + IMAGE_TAG + '''"
                             
-                            # Update all deployment manifests that reference adservice
+                            # Checks for the 'k8s/deployments' directory and 'adservice-config.yaml' file,
+                            # then uses 'sed' to update the Docker image tag for 'adservice' within the YAML file.
                             if [ -d "k8s/deployments" ]; then
                                 if [ -f "k8s/deployments/adservice-config.yaml" ]; then
-                                    sed -i "s|${DOCKER_REGISTRY}:adservice[^ ]*|${DOCKER_REGISTRY}:${env.IMAGE_NAME}|g" k8s/deployments/adservice-config.yaml
+                                    sed -i "s|''' + REGISTRY + ''':adservice[^ ]*|''' + REGISTRY + ''':''' + IMAGE_TAG + '''|g" k8s/deployments/adservice-config.yaml
                                     echo "Updated: k8s/deployments/adservice-config.yaml"
                                 fi
                             fi
                             
                             # Commit and push changes to main branch
                             git add k8s/
-                            git commit -m "ci: Update adservice image to ${DOCKER_REGISTRY}:${env.IMAGE_NAME} [skip ci]" || echo "No changes to commit"
+                            git commit -m "ci: Update adservice image to ''' + REGISTRY + ''':''' + IMAGE_TAG + ''' [skip ci]" || echo "No changes to commit"
                             git push origin main
+                                                        
+                            # Cleanup
+                            cd ..
+                            rm -rf infra-repo
 
                             # Checking back to adservice branch
                             git checkout adservice
 
                             # Printing the current branch
                             git branch
-                            
-                            # Cleanup
-                            cd ..
-                            rm -rf infra-repo
                         '''
                     }
                 }
