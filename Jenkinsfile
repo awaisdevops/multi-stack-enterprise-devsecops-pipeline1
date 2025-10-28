@@ -110,6 +110,9 @@ pipeline {
                     
                     withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         sh '''
+                            # Cleanup any existing infra-repo directory from previous runs
+                            rm -rf infra-repo
+                            
                             # Clone the main branch repo containing K8s manifests
                             git clone https://x-oauth-basic:${PASS}@github.com/awaisdevops/multi-stack-enterprise-devsecops-pipeline1.git infra-repo
                             cd infra-repo
