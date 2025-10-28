@@ -28,7 +28,7 @@ spec:
                 - ALL
             privileged: false
             readOnlyRootFilesystem: true
-          image: awaisakram11199/devopsimages:adservice-latest
+          image: awaisakram11199/devopsimages:addsvcimg-0.1.1-15
           ports:
             - containerPort: 9555
           env:
