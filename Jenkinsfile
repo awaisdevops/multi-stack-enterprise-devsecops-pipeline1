@@ -171,6 +171,11 @@ pipeline {
                             # Clone the main branch repo containing K8s manifests
                             git clone https://x-oauth-basic:${PASS}@github.com/awaisdevops/multi-stack-enterprise-devsecops-pipeline1.git infra-repo
                             cd infra-repo
+                            
+                            # Printing the current branch
+                            git branch
+                            
+                            # Checking out to main branch
                             git checkout main
                             
                             # Configure Git
@@ -178,23 +183,27 @@ pipeline {
                             git config --global user.name "jenkins"
                             
                             # Update the image tag for adservice component in K8s deployments
-                            # Pattern: awaisakram11199/devopsimages:adservice-BUILD_NUMBER
-                            echo "Updating adservice image to: ${DOCKER_REGISTRY}:adservice-${BUILD_NUMBER}"
+                            # Pattern: Match Docker Build Image stage pattern - ${DOCKER_REGISTRY}:${env.IMAGE_NAME}
+                            echo "Updating adservice image to: ${DOCKER_REGISTRY}:${env.IMAGE_NAME}"
                             
                             # Update all deployment manifests that reference adservice
                             if [ -d "k8s/deployments" ]; then
-                                find k8s/deployments -name "*adservice*.yaml" -o -name "deployment.yaml" | while read file; do
-                                    if grep -q "adservice" "$file" 2>/dev/null; then
-                                        sed -i "s|${DOCKER_REGISTRY}:adservice-[^ ]*|${DOCKER_REGISTRY}:adservice-${BUILD_NUMBER}|g" "$file"
-                                        echo "Updated: $file"
-                                    fi
-                                done
+                                if [ -f "k8s/deployments/adservice-config.yaml" ]; then
+                                    sed -i "s|${DOCKER_REGISTRY}:adservice[^ ]*|${DOCKER_REGISTRY}:${env.IMAGE_NAME}|g" k8s/deployments/adservice-config.yaml
+                                    echo "Updated: k8s/deployments/adservice-config.yaml"
+                                fi
                             fi
                             
                             # Commit and push changes to main branch
                             git add k8s/
-                            git commit -m "ci: Update adservice image to ${DOCKER_REGISTRY}:adservice-${BUILD_NUMBER} [skip ci]" || echo "No changes to commit"
+                            git commit -m "ci: Update adservice image to ${DOCKER_REGISTRY}:${env.IMAGE_NAME} [skip ci]" || echo "No changes to commit"
                             git push origin main
+
+                            # Checking back to adservice branch
+                            git checkout adservice
+
+                            # Printing the current branch
+                            git branch
                             
                             # Cleanup
                             cd ..
