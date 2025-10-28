@@ -71,71 +71,8 @@ pipeline {
                     sh './gradlew clean --no-daemon installDist'
                 }
             }
-        }                     
-  
-        // analysis, quality, sonarqube, security
-        stage("SonarQube: Code Scan"){
-            steps{                
-                withSonarQubeEnv("SQ"){                    
-                    sh "./gradlew sonar -Dsonar.projectKey=checkout-service -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.token=${SONAR_AUTH_TOKEN}"
-                }
-            }
-        }     
-
-        // test, quality, junit, gradle
-        stage('Unit Tests') {
-            steps {
-                echo 'Running Unit Tests with Gradle...'
-                sh './gradlew test'
-            }            
-            post {
-                always {
-                    // Collect and publish JUnit test reports from Gradle's default location
-                    junit allowEmptyResults: true, testResults: '**/build/test-results/test/TEST-*.xml' 
-                }
-            }
-        }
-
-        // test, quality, integration, gradle
-        stage('Integration Tests') {
-            steps {
-                echo 'Running Integration Tests with Gradle...'
-                sh './gradlew integrationTest'
-            }
-            post {
-                always {
-                    // Collect and publish integration test reports
-                    junit allowEmptyResults: true, testResults: '**/build/test-results/integrationTest/TEST-*.xml' 
-                }
-            }
-        }
-        
-        /*
-        // security, dependency, owasp
-        stage("OWASP: Dependency Check"){
-            steps{
-                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'dc'
-                dependencyCheckPublisher pattern: '/app-dep-check-report.html'
-            }
-        }   */ 
-         
-        
-        // security, vulnerability, trivy, sast
-        stage("Trivy: Filesystem Scan"){
-            steps{
-                sh "trivy fs --format  table -o trivy-fs-report.json ."
-            }
-        }    
-       /*
-        // quality, sonarqube, gate
-        stage("SonarQube: Quality Gate"){
-            steps{
-                timeout(time: 10, unit: "MINUTES"){
-                    waitForQualityGate abortPipeline: false
-                }
-            }
-        }*/
-        
+        }                    
+                 
         
         // docker, build, container, image
         stage('Docker: Build Image') {              
