@@ -144,16 +144,10 @@ pipeline {
                             git add k8s/
                             git commit -m "ci: Update adservice image to ''' + REGISTRY + ''':''' + IMAGE_TAG + ''' [skip ci]" || echo "No changes to commit"
                             git push origin main
-                                                        
+                            
                             # Cleanup
                             cd ..
                             rm -rf infra-repo
-
-                            # Checking back to adservice branch
-                            git checkout adservice
-
-                            # Printing the current branch
-                            git branch
                         '''
                     }
                 }
