@@ -194,6 +194,7 @@ pipeline {
                         git add build.gradle
                         git add src/
                         git commit -m "ci: Automated version bump [skip ci]"
+                        git pull --rebase origin adservive
                         git push origin HEAD:refs/heads/adservive
                     '''
                     }
