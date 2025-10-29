@@ -5,6 +5,7 @@ metadata:
   labels:
     app: adservice
 spec:
+  replicas: 2
   selector:
     matchLabels:
       app: adservice
@@ -12,7 +13,10 @@ spec:
     metadata:
       labels:
         app: adservice
+        slot: blue
     spec:
+      imagePullSecrets:
+        - name: dockerhub-secret
       terminationGracePeriodSeconds: 5
       securityContext:
         fsGroup: 1000
@@ -28,7 +32,11 @@ spec:
                 - ALL
             privileged: false
             readOnlyRootFilesystem: true
+<<<<<<< HEAD
           image: awaisakram11199/devopsimages:addsvcimg-0.1.1-15
+=======
+          imagePullPolicy: Always
+>>>>>>> 061b862 (Comitting changes before switching to adservice branch)
           ports:
             - containerPort: 9555
           env:

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: cartservice
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: cartservice
@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: cartservice
+        slot: blue
     spec:
       terminationGracePeriodSeconds: 5
       securityContext:
@@ -30,6 +31,7 @@ spec:
             privileged: false
             readOnlyRootFilesystem: true
           image: us-central1-docker.pkg.dev/google-samples/microservices-demo/cartservice:v0.10.3
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 7070
           env:
