@@ -111,7 +111,8 @@ pipeline {
         }
         
         /*
-        // security, dependency, owasp
+        // SCA (Software Composition Analysis)
+        //Scan your application's dependencies for known vulnerabilities.
         stage("OWASP: Dependency Check"){
             steps{
                 dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'dc'
@@ -119,7 +120,7 @@ pipeline {
             }
         }   */ 
          
-        
+        // SAST (Static Application Security Testing) 
         // security, vulnerability, trivy, sast
         stage("Trivy: Filesystem Scan"){
             steps{
